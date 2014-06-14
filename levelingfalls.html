@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+ 
+<head>
+    <title>Viewer 3D Demo</title>
+    <meta name="viewport" content="width=device-width, target-densityDpi=device-dpi, minimum-scale=1.0, maximum-scale=1.0" />
+    <meta charset="utf-8">
+ 
+    <link rel="stylesheet" href="https://developer.api.autodesk.com/viewingservice/v1/viewers/style.css" type="text/css">
+	<script src="https://developer.api.autodesk.com/viewingservice/v1/viewers/viewer3D.min.js"></script>
+ 
+    <script>
+        function initialize() {
+		var options = {
+		'document' : 'urn:dXJuOmFkc2sub2JqZWN0czpvcy5vYmplY3Q6bXlidWNrZXQyL3Rlc3RDdWJlcy5mYng=',
+		'env' : 'ApigeeProd',
+		'accessToken' : 't4pu23EAP8iOrZSOsOYIPttQ4PRN'
+		};
+
+		var viewerElement = document.getElementById('viewer');
+
+		var viewer = new Autodesk.Viewing.BaseViewer3D(viewerElement, {});
+
+		// var viewer = new Autodesk.Viewing.Private.GuiViewer3D(viewerElement, {});
+
+		viewer.initialize();
+		Autodesk.Viewing.Initializer(options,function() {
+		   loadDocument(viewer, getAuthObject(), options.document);
+		});
+		}
+
+        function loadDocument(viewer, auth, documentId, initialItemId) {
+            // Load the document.  Once loaded, find the item requested.  If not found,
+            // just find the first 3d geometry and load that.
+            //
+            Autodesk.Viewing.Document.load(documentId, auth,
+                    function (document) { // onLoadCallback
+                        var geometryItems = [];
+
+                        if (initialItemId) {
+                            geometryItems = Autodesk.Viewing.Document.getSubItemsWithProperties(document.getRootItem(), {'guid':initialItemId}, true);
+                        }
+
+                        if (geometryItems.length == 0) {
+                            geometryItems = Autodesk.Viewing.Document.getSubItemsWithProperties(document.getRootItem(), {'type':'geometry', 'role':'3d'}, true);
+                        }
+
+                        if (geometryItems.length > 0) {
+                            viewer.load(document.getViewablePath(geometryItems[0]));
+                        }
+                    },
+                    function (errorMsg, httpErrorCode) { // onErrorCallback
+                        var container = document.getElementById('viewer2d');
+                        if (container) {
+                            var errorCode = ErrorHander.getErrorCode(httpErrorCode);
+                            ErrorHandler.reportError(container, errorCode);
+                        }
+                    }
+            );
+        }
+    </script>
+</head>
+ 
+<body onload="initialize()">
+  <div id="viewer" style="position:absolute; width:90%; height:60%;"></div>
+</body>
+ 
+</html>
